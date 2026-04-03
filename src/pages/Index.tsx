@@ -35,6 +35,105 @@ const GALLERY = [
   { img: HERO_IMG, caption: "Из печи — к вам" },
 ];
 
+function GallerySection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
+
+  const updateArrows = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 10);
+    setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  const scroll = (dir: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows);
+    updateArrows();
+    return () => el.removeEventListener("scroll", updateArrows);
+  }, []);
+
+  const { ref, visible } = useScrollReveal();
+
+  return (
+    <section
+      id="gallery"
+      ref={ref}
+      className={`py-24 transition-all duration-700 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+      style={{ backgroundColor: "var(--beige)" }}
+    >
+      <div className="max-w-6xl mx-auto px-6 mb-12">
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>
+              Фотогалерея
+            </p>
+            <h2 className="text-5xl md:text-6xl font-light" style={{ color: "var(--brown)", fontFamily: "'Cormorant', serif" }}>
+              Наши<em className="font-semibold"> работы</em>
+            </h2>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => scroll("left")}
+              disabled={!canLeft}
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
+              style={{
+                backgroundColor: canLeft ? "var(--brown)" : "rgba(139,96,64,0.15)",
+                color: canLeft ? "var(--cream)" : "var(--warm-gray)",
+                cursor: canLeft ? "pointer" : "default",
+              }}
+            >
+              <Icon name="ChevronLeft" size={20} />
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              disabled={!canRight}
+              className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300"
+              style={{
+                backgroundColor: canRight ? "var(--brown)" : "rgba(139,96,64,0.15)",
+                color: canRight ? "var(--cream)" : "var(--warm-gray)",
+                cursor: canRight ? "pointer" : "default",
+              }}
+            >
+              <Icon name="ChevronRight" size={20} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex gap-5 overflow-x-auto pb-4"
+        style={{ paddingLeft: "max(24px, calc((100vw - 1152px)/2 + 24px))", paddingRight: "24px", scrollbarWidth: "none" }}
+      >
+        {GALLERY.map((item, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 group relative overflow-hidden rounded-2xl cursor-pointer hover-lift"
+            style={{ width: i % 2 === 0 ? "320px" : "260px", height: "380px" }}
+          >
+            <img src={item.img} alt={item.caption} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+            <div
+              className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 flex items-end p-5"
+              style={{ background: "linear-gradient(to top, rgba(92,61,30,0.85) 0%, transparent 60%)" }}
+            >
+              <span className="text-white font-medium text-sm">{item.caption}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function useScrollReveal() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -339,42 +438,7 @@ export default function Index() {
       </Section>
 
       {/* GALLERY */}
-      <Section id="gallery" className="py-24 overflow-hidden" style={{ backgroundColor: "var(--beige)" }}>
-        <div className="max-w-6xl mx-auto px-6 mb-12">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "var(--gold)", letterSpacing: "0.2em" }}>
-                Фотогалерея
-              </p>
-              <h2 className="text-5xl md:text-6xl font-light" style={{ color: "var(--brown)", fontFamily: "'Cormorant', serif" }}>
-                Наши<em className="font-semibold"> работы</em>
-              </h2>
-            </div>
-            <p className="hidden md:block text-sm" style={{ color: "var(--warm-gray)" }}>← Листайте →</p>
-          </div>
-        </div>
-
-        <div
-          className="flex gap-5 overflow-x-auto pb-4"
-          style={{ paddingLeft: "max(24px, calc((100vw - 1152px)/2 + 24px))", paddingRight: "24px", scrollbarWidth: "none" }}
-        >
-          {GALLERY.map((item, i) => (
-            <div
-              key={i}
-              className="flex-shrink-0 group relative overflow-hidden rounded-2xl cursor-pointer hover-lift"
-              style={{ width: i % 2 === 0 ? "320px" : "260px", height: "380px" }}
-            >
-              <img src={item.img} alt={item.caption} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-              <div
-                className="absolute inset-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100 flex items-end p-5"
-                style={{ background: "linear-gradient(to top, rgba(92,61,30,0.85) 0%, transparent 60%)" }}
-              >
-                <span className="text-white font-medium text-sm">{item.caption}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
+      <GallerySection />
 
       {/* ORDER FORM */}
       <Section id="order" className="py-24 px-6">
